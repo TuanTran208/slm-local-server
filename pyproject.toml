@@ -1,0 +1,23 @@
+[project]
+name = "slm-local-server"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.115.11",
+    "pydantic-settings>=2.8.1",
+    "pyinstaller>=6.12.0",
+    "transformers>=4.49.0",
+    "uvicorn>=0.34.0",
+    "torch>=2.6.0",
+    "accelerate>=1.4.0",
+]
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cu118", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]
+[[tool.uv.index]]
+name = "pytorch-cu118"
+url = "https://download.pytorch.org/whl/cu118"
+explicit = true
