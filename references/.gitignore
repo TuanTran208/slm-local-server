@@ -1,0 +1,29 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+venv/
+env/
+
+#misc 
+.pytest_cache/
+models/
+repomix-output.txt
+
+# IDE and editor settings
+.idea/
+.vscode/
+
+# Log files
+*.log
+
+# Database files
+*.sqlite3
+
+# Configuration files with sensitive information
+config.py
+
+# Operating system files
+.DS_Store
+Thumbs.db

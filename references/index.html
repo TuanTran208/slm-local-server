@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SLM Chat Interface</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary: #1a73e8;
+            --primary-light: #e8f0fe;
+            --secondary: #34a853;
+            --dark: #202124;
+            --light: #f8f9fa;
+            --light-gray: #dadce0;
+            --error: #ea4335;
+            --border-radius: 8px;
+            --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            grid-gap: 20px;
+            height: 100vh;
+        }
+
+        .header {
+            grid-column: 1 / 3;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding-right: 20px;
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            border-radius: var(--border-radius);
+            background-color: #fff;
+            box-shadow: var(--shadow);
+            height: calc(100vh - 80px);
+        }
+
+        .panel {
+            background-color: #fff;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .panel-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .model-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .model-item {
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--light-gray);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .model-item:hover {
+            border-color: var(--primary);
+            background-color: var(--primary-light);
+        }
+
+        .model-item.selected {
+            border-color: var(--primary);
+            background-color: var(--primary-light);
+        }
+
+        .model-item.loaded {
+            border-left: 4px solid var(--secondary);
+        }
+
+        .model-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .model-id {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .model-status {
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        .status-loaded {
+            background-color: #e6f4ea;
+            color: var(--secondary);
+        }
+
+        .status-available {
+            background-color: #fff8e1;
+            color: #f9a825;
+        }
+
+        .status-loading {
+            background-color: #e8f0fe;
+            color: var(--primary);
+        }
+
+        .status-error {
+            background-color: #fce8e6;
+            color: var(--error);
+        }
+
+        .action-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .action-btn:hover {
+            background-color: #0b5bbd;
+        }
+
+        .action-btn:disabled {
+            background-color: var(--light-gray);
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+        }
+
+        .btn-secondary:hover {
+            background-color: #2d9549;
+        }
+
+        .settings-group {
+            margin-bottom: 20px;
+        }
+
+        .settings-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #5f6368;
+        }
+
+        .form-group input[type="number"],
+        .form-group input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--light-gray);
+            border-radius: var(--border-radius);
+            font-size: 14px;
+        }
+
+        .form-group input[type="checkbox"] {
+            margin-right: 8px;
+        }
+
+        .toggle {
+            display: flex;
+            align-items: center;
+        }
+
+        .chat-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--light-gray);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chat-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: var(--border-radius);
+            position: relative;
+            line-height: 1.5;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background-color: var(--primary);
+            color: white;
+            border-top-right-radius: 4px;
+        }
+
+        .assistant-message {
+            align-self: flex-start;
+            background-color: #f1f3f4;
+            border-top-left-radius: 4px;
+        }
+
+        .system-message {
+            align-self: center;
+            background-color: #fce8e6;
+            color: var(--secondary);
+            font-size: 14px;
+            padding: 8px 12px;
+        }
+        .info-message {
+            align-self: center;
+            background-color: #e8f0fe; 
+            color: var(--primary);
+            font-size: 14px;
+            padding: 8px 12px;
+            border-radius: var(--border-radius);
+        }
+        .message-time {
+            font-size: 11px;
+            color: #999;
+            margin-top: 5px;
+            text-align: right;
+        }
+
+        .chat-input {
+            padding: 15px 20px;
+            border-top: 1px solid var(--light-gray);
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input textarea {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--light-gray);
+            border-radius: var(--border-radius);
+            resize: none;
+            font-size: 14px;
+            height: 60px;
+        }
+
+        .chat-input button {
+            padding: 0;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .chat-input button:disabled {
+            background-color: var(--light-gray);
+        }
+
+        .status-bar {
+            padding: 10px 20px;
+            font-size: 14px;
+            color: #5f6368;
+            border-top: 1px solid var(--light-gray);
+        }
+
+        .loader {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid var(--primary-light);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 5px;
+            padding: 5px 0;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background-color: #999;
+            border-radius: 50%;
+            animation: typing-animation 1.5s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing-animation {
+            0%, 100% {
+                opacity: 0.2;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slide-in 0.3s ease-out;
+            max-width: 350px;
+        }
+
+        @keyframes slide-in {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .notification.success {
+            border-left: 4px solid var(--secondary);
+        }
+
+        .notification.error {
+            border-left: 4px solid var(--error);
+        }
+
+        .notification-close {
+            cursor: pointer;
+            font-size: 18px;
+            color: #5f6368;
+        }
+
+        /* Add responsiveness */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                grid-column: 1;
+            }
+
+            .sidebar {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <i class="bi bi-cpu"></i>
+                <span>SLM Chat Interface</span>
+            </div>
+            <div id="modelInfo">
+                <!-- Current model info will be displayed here -->
+            </div>
+        </header>
+
+        <aside class="sidebar">
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">Models</div>
+                    <button id="refreshModels" class="action-btn" title="Refresh model list">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                </div>
+                <div class="model-list" id="modelList">
+                    <div style="text-align: center; padding: 20px;">
+                        <div class="loader"></div>
+                        <p>Loading models...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">Settings</div>
+                </div>
+
+                <div class="settings-group">
+                    <div class="settings-title">Generation Parameters</div>
+                    <div class="form-group">
+                        <label for="temperature">Temperature</label>
+                        <input type="number" id="temperature" value="0.7" min="0" max="2" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="maxTokens">Max Tokens</label>
+                        <input type="number" id="maxTokens" value="2048" min="1" max="8192">
+                    </div>
+                    <div class="form-group">
+                        <label for="topP">Top P</label>
+                        <input type="number" id="topP" value="0.95" min="0" max="1" step="0.01">
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <div class="settings-title">Interface Settings</div>
+                    <div class="form-group toggle">
+                        <input type="checkbox" id="streamToggle" checked>
+                        <label for="streamToggle">Stream responses</label>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <div class="settings-title">Conversation</div>
+                    <button id="newConversationBtn" class="action-btn btn-secondary">
+                        <i class="bi bi-plus-circle"></i> New Conversation
+                    </button>
+                    <div class="form-group" style="margin-top: 10px;">
+                        <div id="conversationInfo">No active conversation</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="chat-container">
+            <div class="chat-header">
+                <div class="chat-title">Chat with AI</div>
+            </div>
+
+            <div class="chat-messages" id="messagesContainer">
+                <div class="message system-message">
+                    Select a model and create a conversation to start chatting
+                </div>
+            </div>
+
+            <div class="chat-input">
+                <textarea id="userInput" placeholder="Type your message here..." disabled></textarea>
+                <button id="sendBtn" class="action-btn" disabled>
+                    <i class="bi bi-send"></i>
+                </button>
+            </div>
+
+            <div class="status-bar" id="statusBar">Ready</div>
+        </main>
+    </div>
+
+    <script>
+        // API Configuration
+        const API_BASE_URL = 'http://localhost:8888';
+        
+        // State variables
+        let selectedModel = null;
+        let currentConversationId = null;
+        let isGenerating = false;
+        
+        // DOM Elements
+        const modelList = document.getElementById('modelList');
+        const messagesContainer = document.getElementById('messagesContainer');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const statusBar = document.getElementById('statusBar');
+        const conversationInfo = document.getElementById('conversationInfo');
+        const modelInfo = document.getElementById('modelInfo');
+        const newConversationBtn = document.getElementById('newConversationBtn');
+        const streamToggle = document.getElementById('streamToggle');
+        const temperatureInput = document.getElementById('temperature');
+        const maxTokensInput = document.getElementById('maxTokens');
+        const topPInput = document.getElementById('topP');
+        const refreshModelsBtn = document.getElementById('refreshModels');
+        
+        // ------------ Fetch Models ------------
+        async function fetchModels() {
+            try {
+                updateStatus('Fetching models...');
+                const response = await fetch(`${API_BASE_URL}/api/models/`);
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch models: ${response.status}`);
+                }
+                
+                const models = await response.json();
+                renderModelList(models);
+                updateStatus('Models fetched successfully');
+                
+                // If a model was previously selected, update its status
+                if (selectedModel) {
+                    const updatedModel = models.find(m => m.id === selectedModel.id);
+                    if (updatedModel) {
+                        selectedModel = updatedModel;
+                        updateModelInfo();
+                        
+                        // If model is now loaded, enable chat
+                        if (updatedModel.status === 'loaded' && currentConversationId) {
+                            enableChatInterface();
+                        }
+                    }
+                }
+                
+                return models;
+            } catch (error) {
+                showNotification('Error fetching models: ' + error.message, 'error');
+                modelList.innerHTML = `<div style="padding: 20px; text-align: center;">
+                    <p>Failed to load models</p>
+                    <button class="action-btn" onclick="fetchModels()">Retry</button>
+                </div>`;
+                updateStatus('Error: ' + error.message);
+                return [];
+            }
+        }
+        
+        // ------------ Render Model List ------------
+        function renderModelList(models) {
+            if (!models || models.length === 0) {
+                modelList.innerHTML = `<div style="padding: 20px; text-align: center;">
+                    <p>No models found</p>
+                </div>`;
+                return;
+            }
+            
+            modelList.innerHTML = '';
+            models.forEach(model => {
+                const modelItem = document.createElement('div');
+                modelItem.className = `model-item ${model.status === 'loaded' ? 'loaded' : ''}`;
+                if (selectedModel && selectedModel.id === model.id) {
+                    modelItem.classList.add('selected');
+                }
+                
+                const statusClass = getStatusClass(model.status);
+                
+                modelItem.innerHTML = `
+                    <div class="model-name">${model.name}</div>
+                    <div class="model-id">${model.id}</div>
+                    <div class="model-status ${statusClass}">${getStatusText(model.status)}</div>
+                `;
+                
+                // Add load button if not loaded
+                if (model.status !== 'loaded') {
+                    const loadBtn = document.createElement('button');
+                    loadBtn.className = 'action-btn';
+                    loadBtn.style.width = '100%';
+                    loadBtn.innerHTML = `<i class="bi bi-cloud-download"></i> Load Model`;
+                    loadBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        loadModel(model.id);
+                    };
+                    modelItem.appendChild(loadBtn);
+                }
+                
+                modelItem.addEventListener('click', () => selectModel(model));
+                modelList.appendChild(modelItem);
+            });
+        }
+        
+        // ------------ Status Helpers ------------
+        function getStatusText(status) {
+            switch(status) {
+                case 'loaded': return 'Loaded';
+                case 'loading': return 'Loading...';
+                case 'available': return 'Available (Not Loaded)';
+                case 'not_downloaded': return 'Not Downloaded';
+                case 'error': return 'Error';
+                default: return status;
+            }
+        }
+        
+        function getStatusClass(status) {
+            switch(status) {
+                case 'loaded': return 'status-loaded';
+                case 'loading': return 'status-loading';
+                case 'available': return 'status-available';
+                case 'error': return 'status-error';
+                default: return '';
+            }
+        }
+        
+        function updateStatus(message) {
+            statusBar.textContent = message;
+        }
+        
+        function updateModelInfo() {
+            if (selectedModel) {
+                const statusClass = getStatusClass(selectedModel.status);
+                modelInfo.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span>Selected Model: <strong>${selectedModel.name}</strong></span>
+                        <span class="model-status ${statusClass}" style="margin: 0;">
+                            ${getStatusText(selectedModel.status)}
+                        </span>
+                    </div>
+                `;
+            } else {
+                modelInfo.innerHTML = `<span>No model selected</span>`;
+            }
+        }
+        
+        // ------------ Select Model ------------
+        function selectModel(model) {
+            selectedModel = model;
+            
+            // Update UI
+            document.querySelectorAll('.model-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            const modelElement = document.querySelector(`.model-item:nth-child(${models.indexOf(model) + 1})`);
+            if (modelElement) {
+                modelElement.classList.add('selected');
+            }
+            
+            updateModelInfo();
+            
+            // Update status based on model state
+            if (model.status === 'loaded') {
+                updateStatus(`Model ${model.name} is ready`);
+                // If we have a conversation, enable chat
+                if (currentConversationId) {
+                    enableChatInterface();
+                } else {
+                    // Create a new conversation automatically
+                    createNewConversation();
+                }
+            } else {
+                updateStatus(`Model ${model.name} selected but needs to be loaded`);
+                disableChatInterface();
+            }
+        }
+        
+        // ------------ Load Model ------------
+        async function loadModel(modelId) {
+            try {
+                updateStatus(`Loading model ${modelId}...`);
+                
+                // Start async loading
+                const response = await fetch(`${API_BASE_URL}/api/models/${modelId}/load-async`, {
+                    method: 'POST'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to start model loading: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                showNotification(`Started loading model ${modelId}`, 'success');
+                
+                // Update model list
+                await fetchModels();
+                
+                // Start polling for loading status
+                pollLoadingStatus(modelId);
+            } catch (error) {
+                showNotification('Error loading model: ' + error.message, 'error');
+                updateStatus('Error: ' + error.message);
+            }
+        }
+        
+        // ------------ Poll Loading Status ------------
+        async function pollLoadingStatus(modelId) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/models/${modelId}/loading-status`);
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to check loading status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                // Update status in UI
+                updateStatus(`Loading model ${modelId}: ${result.progress}% - ${result.message}`);
+                
+                if (result.status === 'loading') {
+                    // Continue polling
+                    setTimeout(() => pollLoadingStatus(modelId), 2000);
+                } else if (result.status === 'loaded') {
+                    updateStatus(`Model ${modelId} loaded successfully`);
+                    showNotification(`Model ${modelId} loaded successfully`, 'success');
+                    
+                    // Refresh models list
+                    await fetchModels();
+                    
+                    // If this is the selected model, update UI
+                    if (selectedModel && selectedModel.id === modelId) {
+                        selectedModel.status = 'loaded';
+                        updateModelInfo();
+                        
+                        // Create conversation if none exists
+                        if (!currentConversationId) {
+                            createNewConversation();
+                        } else {
+                            enableChatInterface();
+                        }
+                    }
+                } else if (result.status === 'error') {
+                    updateStatus(`Error loading model: ${result.message}`);
+                    showNotification(`Error loading model: ${result.message}`, 'error');
+                    await fetchModels();
+                }
+            } catch (error) {
+                updateStatus('Error checking loading status: ' + error.message);
+                // Try again after a delay
+                setTimeout(() => pollLoadingStatus(modelId), 5000);
+            }
+        }
+        
+        // ------------ Create New Conversation ------------
+        async function createNewConversation() {
+            if (!selectedModel) {
+                showNotification('Please select a model first', 'error');
+                return;
+            }
+            
+            if (selectedModel.status !== 'loaded') {
+                showNotification('Please load the model first', 'error');
+                return;
+            }
+            
+            try {
+                updateStatus('Creating new conversation...');
+                
+                const response = await fetch(`${API_BASE_URL}/api/conversations/?model=${selectedModel.id}`, {
+                    method: 'POST'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to create conversation: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                currentConversationId = result.id;
+                
+                // Update UI
+                conversationInfo.innerHTML = `
+                    <div>Active conversation: <span style="color: var(--primary);">${currentConversationId.substring(0, 8)}...</span></div>
+                `;
+                
+                // Clear messages
+                messagesContainer.innerHTML = `
+                    <div class="message info-message">
+                        New conversation started with ${selectedModel.name}
+                    </div>
+                `;
+                
+                updateStatus('New conversation created');
+                enableChatInterface();
+                
+                showNotification('New conversation created', 'success');
+            } catch (error) {
+                showNotification('Error creating conversation: ' + error.message, 'error');
+                updateStatus('Error: ' + error.message);
+            }
+        }
+        
+        // ------------ Enable/Disable Chat Interface ------------
+        function enableChatInterface() {
+            userInput.disabled = false;
+            sendBtn.disabled = false;
+            userInput.placeholder = "Type your message here...";
+            userInput.focus();
+        }
+        
+        function disableChatInterface() {
+            userInput.disabled = true;
+            sendBtn.disabled = true;
+            userInput.placeholder = "Load a model to start chatting...";
+        }
+        
+        // ------------ Send Message ------------
+        async function sendMessage() {
+            const messageText = userInput.value.trim();
+            if (!messageText) return;
+            
+            // Check requirements
+            if (!selectedModel || selectedModel.status !== 'loaded') {
+                showNotification('Please select and load a model first', 'error');
+                return;
+            }
+            
+            if (!currentConversationId) {
+                await createNewConversation();
+                if (!currentConversationId) return;
+            }
+            
+            // Disable input while processing
+            userInput.disabled = true;
+            sendBtn.disabled = true;
+            isGenerating = true;
+            
+            // Add user message to UI
+            const timestamp = new Date().toLocaleTimeString();
+            addMessage('user', messageText, timestamp);
+            
+            // Clear input
+            userInput.value = '';
+            
+            try {
+                // Update conversation with user message
+                await fetch(`${API_BASE_URL}/api/conversations/${currentConversationId}/messages?role=user&content=${encodeURIComponent(messageText)}`, {
+                    method: 'POST'
+                });
+                
+                // Get response
+                if (streamToggle.checked) {
+                    await getStreamingResponse(messageText);
+                } else {
+                    await getNonStreamingResponse(messageText);
+                }
+            } catch (error) {
+                showNotification('Error: ' + error.message, 'error');
+                addMessage('system', `Error: ${error.message}`);
+                updateStatus('Error: ' + error.message);
+            } finally {
+                // Re-enable input
+                userInput.disabled = false;
+                sendBtn.disabled = false;
+                isGenerating = false;
+                userInput.focus();
+            }
+        }
+        
+        // ------------ Get Streaming Response ------------
+        async function getStreamingResponse(messageText) {
+            // Create placeholder for assistant response
+            const responseId = 'response-' + Date.now();
+            const timestamp = new Date().toLocaleTimeString();
+            addMessage('assistant', '<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>', timestamp, responseId);
+            
+            // Prepare request
+            const requestBody = {
+                model: selectedModel.id,
+                messages: [
+                    { role: "user", content: messageText }
+                ],
+                temperature: parseFloat(temperatureInput.value),
+                top_p: parseFloat(topPInput.value),
+                max_tokens: parseInt(maxTokensInput.value),
+                stream: true
+            };
+            
+            try {
+                updateStatus('Generating response...');
+                
+                // Make request
+                const response = await fetch(`${API_BASE_URL}/api/chat/completions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server error: ${response.status} - ${errorText}`);
+                }
+                
+                if (!response.body) {
+                    throw new Error('ReadableStream not supported in this browser');
+                }
+                
+                // Process stream
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let responseText = '';
+                
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+                    
+                    const chunk = decoder.decode(value, { stream: true });
+                    const lines = chunk.split('\n');
+                    
+                    for (const line of lines) {
+                        if (line.startsWith('data:')) {
+                            const data = line.substring(5).trim();
+                            
+                            if (data === '[DONE]') {
+                                // Stream complete
+                                if (currentConversationId && responseText) {
+                                    try {
+                                        await fetch(`${API_BASE_URL}/api/conversations/${currentConversationId}/messages?role=assistant&content=${encodeURIComponent(responseText)}`, {
+                                            method: 'POST'
+                                        });
+                                    } catch (error) {
+                                        console.error('Error adding response to conversation:', error);
+                                    }
+                                }
+                                updateStatus('Response complete');
+                                break;
+                            }
+                            
+                            try {
+                                const parsedData = JSON.parse(data);
+                                if (parsedData.choices && parsedData.choices.length > 0) {
+                                    const delta = parsedData.choices[0].delta;
+                                    if (delta && delta.content) {
+                                        responseText += delta.content;
+                                        updateMessage(responseId, responseText, timestamp);
+                                    }
+                                } else if (parsedData.error) {
+                                    throw new Error(parsedData.error);
+                                }
+                            } catch (e) {
+                                console.error('Error parsing stream data:', e, data);
+                            }
+                        }
+                    }
+                }
+                
+                // If no response was received
+                if (!responseText) {
+                    updateMessage(responseId, 'No response received from the model', timestamp);
+                    updateStatus('No response received');
+                }
+            } catch (error) {
+                updateMessage(responseId, `Error: ${error.message}`, timestamp);
+                updateStatus('Error: ' + error.message);
+                throw error;
+            }
+        }
+        
+        // ------------ Get Non-Streaming Response ------------
+        async function getNonStreamingResponse(messageText) {
+            try {
+                updateStatus('Generating response...');
+                
+                // Show typing indicator
+                const responseId = 'response-' + Date.now();
+                const timestamp = new Date().toLocaleTimeString();
+                addMessage('assistant', '<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>', timestamp, responseId);
+                
+                // Prepare request
+                const requestBody = {
+                    model: selectedModel.id,
+                    messages: [
+                        { role: "user", content: messageText }
+                    ],
+                    temperature: parseFloat(temperatureInput.value),
+                    top_p: parseFloat(topPInput.value),
+                    max_tokens: parseInt(maxTokensInput.value),
+                    stream: false
+                };
+                
+                // Make request
+                const response = await fetch(`${API_BASE_URL}/api/chat/completions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server error: ${response.status} - ${errorText}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.choices && result.choices.length > 0) {
+                    const responseText = result.choices[0].message.content;
+                    updateMessage(responseId, responseText, timestamp);
+                    
+                    // Add to conversation
+                    if (currentConversationId) {
+                        try {
+                            await fetch(`${API_BASE_URL}/api/conversations/${currentConversationId}/messages?role=assistant&content=${encodeURIComponent(responseText)}`, {
+                                method: 'POST'
+                            });
+                        } catch (error) {
+                            console.error('Error adding response to conversation:', error);
+                        }
+                    }
+                    
+                    updateStatus('Response complete');
+                } else {
+                    updateMessage(responseId, 'No response received from the model', timestamp);
+                    updateStatus('No response received');
+                }
+            } catch (error) {
+                updateStatus('Error: ' + error.message);
+                throw error;
+            }
+        }
+        
+        // ------------ Message UI Helpers ------------
+        function addMessage(role, content, timestamp, id = null) {
+            const messageEl = document.createElement('div');
+            messageEl.className = `message ${role}-message`;
+            if (id) messageEl.id = id;
+            
+            messageEl.innerHTML = `
+                ${content}
+                ${timestamp ? `<div class="message-time">${timestamp}</div>` : ''}
+            `;
+            
+            messagesContainer.appendChild(messageEl);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        function updateMessage(id, content, timestamp) {
+            const messageEl = document.getElementById(id);
+            if (messageEl) {
+                messageEl.innerHTML = `
+                    ${content}
+                    ${timestamp ? `<div class="message-time">${timestamp}</div>` : ''}
+                `;
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+        }
+        
+        // ------------ Notification System ------------
+        function showNotification(message, type = 'success') {
+            // Remove any existing notifications
+            const existingNotification = document.querySelector('.notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+            
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            
+            notification.innerHTML = `
+                <i class="bi ${type === 'success' ? 'bi-check-circle' : 'bi-exclamation-circle'}"></i>
+                <div style="flex: 1;">${message}</div>
+                <div class="notification-close"><i class="bi bi-x"></i></div>
+            `;
+            
+            // Add to DOM
+            document.body.appendChild(notification);
+            
+            // Set auto-dismiss
+            const dismissTimeout = setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => notification.remove(), 300);
+            }, 5000);
+            
+            // Add click handler for manual dismiss
+            notification.querySelector('.notification-close').addEventListener('click', () => {
+                clearTimeout(dismissTimeout);
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => notification.remove(), 300);
+            });
+        }
+        
+        // ------------ Initialize App ------------
+        async function initializeApp() {
+            // Fetch models
+            const models = await fetchModels();
+            
+            // Auto-select first model if available
+            if (models && models.length > 0) {
+                selectModel(models[0]);
+            }
+            
+            // Set up auto-refresh for models
+            setInterval(fetchModels, 10000);
+        }
+        
+        // ------------ Event Listeners ------------
+        document.addEventListener('DOMContentLoaded', () => {
+            messagesContainer.innerHTML = `
+            <div class="message info-message">
+                Select a model and create a conversation to start chatting
+            </div>
+            `;
+            // Initialize
+            initializeApp();
+            
+            // Send button
+            sendBtn.addEventListener('click', sendMessage);
+            
+            // Enter key in textarea
+            userInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            // New conversation button
+            newConversationBtn.addEventListener('click', createNewConversation);
+            
+            // Refresh models button
+            refreshModelsBtn.addEventListener('click', fetchModels);
+        });
+    </script>
+</body>
+</html>

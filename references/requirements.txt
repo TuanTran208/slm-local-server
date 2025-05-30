@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+pydantic
+PyYAML
+llama-cpp-python
+python-dotenv
+websockets
+torch
+pytest 
+pytest-asyncio 
+pytest-cov 
+httpx
+psutil
+aiohttp
+requests
